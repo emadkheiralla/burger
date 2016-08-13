@@ -1,52 +1,26 @@
-// Inside burger.js, import orm.js into burger.js
-var ORM = require('../config/orm');
+var orm = require('../config/orm.js');
 
-// Also inside burger.js, create the code 
-// that will call the ORM functions using
-//  burger specific input for the ORM.
-//  
-var BURGER = {
-
-    all: ORM.selectAll,
-    create: ORM.insertOne,
-    update: ORM.updateOne
-
+var burger = {
+	all: function (cb) {
+		orm.all('burgers', function (res) {
+			cb(res);
+		});
+	},
+	create: function (cols, vals, cb) {
+		orm.create('burgers', cols, vals, function (res) {
+			cb(res);
+		});
+	},
+	update: function (objColVals, condition, cb) {
+		orm.update('burgers', objColVals, condition, function (res) {
+			cb(res);
+		});
+	},
+	delete: function (condition, cb) {
+		orm.delete('burgers', condition, function (res) {
+			cb(res);
+		});
+	}
 };
-// SIDES = {
 
-//     all: ORM.selectAll("sides"),
-//     create: ORM.insertOne,
-//     update: ORM.updateOne
-
-// }
-
-// BURGER = {
-
-//     all: ORM.selectAll("burger"),
-//     create: ORM.insertOne,
-//     update: ORM.updateOne
-
-// }
-
-// Export at the end of the burger.js file.
-// me
-module.exports = BURGER;
-// BURGER.all;
-// BURGER.all();
-
-// var x = 3;
-// var y = x;
-// console.log(y + 2);
-
-// var fx = function() {
-// console.log('i am fx');
-// }
-// fx();
-// var fy = fx;
-// fy();
-
-// ORM.selectAll;
-// BURGER.all= ORM.selectAll;
-// ORM.selectAll();
-// BURGER.all();
-// BURGER.create("newburger", false);
+module.exports = burger;

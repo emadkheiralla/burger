@@ -1,58 +1,76 @@
-// require connection here too 
-var connection = require('./connection');
-// In the orm.js file, create the methods that will execute
-//  the necessary MySQL commands in the controllers. 
-//  These are the methods you will need 
-// to use in order to retrieve and store data in your database.
-var ORM = {
-    // return all the burgers in the table
-    selectAll: function() {
-        connection.query('SELECT * FROM burgers', function(err, db_response) {
-            if (err) {
-                throw err;
-            }
-            console.log(db_response);
-        })
-    },
-    // *********From the docs
-    // var post  = {id: 1, title: 'Hello MySQL'};
-    // var query = connection.query('INSERT INTO posts SET ?', post, function(err, result) {
-    // Neat!
-    // });
-    // console.log(query.sql);
-    // *********
+var connection = require('../config/connection.js');
 
-    // create a new burger and insert into db
-    // bName[String] dev[Bool]
-    insertOne: function(bName, dev) {
-        // create a attributes Obj that has column names as props and values
-        var newBurg = {
-            burger_name: bName,
-            devoured: dev
-        };
-        // insert it
-        connection.query('INSERT INTO burgers SET ?', newBurg, function(err, db_response, db_fields) {
-            // check results           
+function printQuestionMarks(num) {
+    var arr = [];
 
-            console.log('you created a new burger named', db_response);
+    for (var i = 0; i < num; i++) {
+        arr.push('?');
+    }
 
+    return arr.toString();
+}
+
+function objToSql(ob) {
+    var arr = [];
+
+    for (var key in ob) {
+        if (ob.hasOwnProperty(key)) {
+            arr.push(key + '=' + ob[key]);
+        }
+    }
+
+    return arr.toString();
+}
+
+var orm = {
+    all: function (tableInput, cb) {
+        var queryString = 'SELECT * FROM ' + tableInput + ';';
+        connection.query(queryString, function (err, result) {
+            if (err) throw err;
+            cb(result);
         });
     },
-    // change a value on a burger (devoured)
-    updateOne: function(burger_id) {
-        // retrieve the selected burger
-        // retrieve the devoured column
-        // UPDATE burgers SET devoured = true WHERE ID = ?
-        // create a attributes object that has column names as props and values
-        var updatedVals = [true, burger_id];
-        // connection.query('UPDATE burgers SET devoured = true WHERE ID = ?')
-        connection.query('UPDATE burgers SET devoured = ?  WHERE id = ?', updatedVals, function(err, db_response, db_fields) {
-            if (err) {
-                throw err;
-            }
-            console.log("updated query response", db_response);
-            console.log("with fields", db_fields);
+    create: function (table, cols, vals, cb) {
+        var queryString = 'INSERT INTO ' + table;
+
+        queryString += ' (';
+        queryString += cols.toString();
+        queryString += ') ';
+        queryString += 'VALUES (';
+        queryString += printQuestionMarks(vals.length);
+        queryString += ') ';
+
+        console.log(queryString);
+
+        connection.query(queryString, vals, function (err, result) {
+            if (err) throw err;
+            cb(result);
+        });
+    },
+    update: function (table, objColVals, condition, cb) {
+        var queryString = 'UPDATE ' + table;
+
+        queryString = queryString + ' SET ';
+        queryString = queryString + objToSql(objColVals);
+        queryString = queryString + ' WHERE ';
+        queryString = queryString + condition;
+
+        console.log(queryString);
+        connection.query(queryString, function (err, result) {
+            if (err) throw err;
+            cb(result);
+        });
+    },
+    delete: function (table, condition, cb) {
+        var queryString = 'DELETE FROM ' + table;
+        queryString = queryString + ' WHERE ';
+        queryString = queryString + condition;
+
+        connection.query(queryString, function (err, result) {
+            if (err) throw err;
+            cb(result);
         });
     }
 };
-module.exports = ORM;
+
+module.exports = orm;
